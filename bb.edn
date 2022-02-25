@@ -50,7 +50,7 @@
                                      (seq (fs/modified-since "target/app.jar" (fs/glob "." "jib.edn"))))
                                 (println "version is " version)
                                 (shell (format "docker build --label %s --label %s --label %s -t gcr.io/personalsdm-216019/altjserver:%s ." 
-                                               (format "org.opencontainers.image.revision=%s" (-> (shell "git rev-parse HEAD")
+                                               (format "org.opencontainers.image.revision=%s" (-> (shell {:out :string} "git rev-parse HEAD")
                                                                                                   (deref)
                                                                                                   :out))
                                                "org.opencontainers.image.source=https://github.com/vonwig/altjservice"
