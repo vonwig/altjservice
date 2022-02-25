@@ -65,7 +65,7 @@
          ingress-ip "35.231.1.233"
 
          pod-version {:depends [context ingress-ip]
-                      :task (shell (format "curl -H \"Host: demo.atomist.com\" http://%s/clj2" ingress-ip))}
+                      :task (shell (format "curl -H \"Host: demo.atomist.com\" http://%s/altjservice" ingress-ip))}
 
          first-pod-name {:task (->> (shell {:out :string} "kubectl get pods -n production -o json")
                                     (deref)
