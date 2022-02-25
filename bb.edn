@@ -1,0 +1,88 @@
+{:min-bb-version "0.3.7"
+ :paths ["scripts"]
+ :deps {slimslenderslacks/bb-util {:local/root "/Users/slim/slimslenderslacks/bb-util"}
+        lread/status-line {:git/url "https://github.com/lread/status-line.git"
+                           :sha "35ed39645038e81b42cb15ed6753b8462e60a06d"}}
+ :tasks {:requires [[clojure.string :as string]
+                    [lread.status-line :as status]
+                    [atomist.json.interface :as json]
+                    [babashka.process :as p]
+                    [babashka.fs :as fs]
+                    [clojure.tools.cli :as cli]
+                    [clojure.pprint :refer [pprint]]
+                    [tasks]]
+         :init (do (def cli-opts (cli/parse-opts *command-line-args* [["-m" "--message MESSSAGE" ""]
+                                                                      [nil "--skip-clean-check" "run anyway"]
+                                                                      [nil "--context context" "kube context"]])))
+         :enter (let [{:keys [name]} (current-task)] (status/line :head "TASK %s %s" name (string/join " " *command-line-args*)))
+         :leave (let [{:keys [name]} (current-task)] (status/line :detail "\nTASK %s done." name))
+
+         version {:task (tasks/describe)}
+
+         print-version {:depends [version]
+                        :task (println version)}
+
+         increment-version {:task (tasks/increment-version (fs/file "src/atomist/main.clj"))}
+
+         next-version {:task (tasks/next-tag)}
+
+         print-next-version {:depends [next-version]
+                             :task (println next-version)}
+
+         tag {:depends [next-version]
+              :task (shell (format "git tag %s" next-version))}
+
+         commit {:depends [increment-version]
+                 :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" increment-version)))}
+
+         clean? {:task (if (and (not (-> cli-opts :options :skip-clean-check)) (not (tasks/clean?)))
+                         (throw (ex-info "dirty working copy. stop" {})))}
+
+         push {:depends [version]
+               :task (shell (format "git push origin main %s" version))}
+
+         ;; requires the jib tool to be installed
+         build-image {:depends [commit clean? tag version push]
+                      :task (do
+                              (when (or
+                                     (seq (fs/modified-since "target/app.jar" (fs/glob "src" "**.clj")))
+                                     (seq (fs/modified-since "target/app.jar" (fs/glob "." "deps.edn")))
+                                     (seq (fs/modified-since "target/app.jar" (fs/glob "." "jib.edn"))))
+                                (println "version is " version)
+                                (shell (format "docker build --label %s --label %s --label %s -t gcr.io/personalsdm-216019/altjserver:%s" 
+                                               (format "org.opencontainers.image.revision=%s" (shell "git rev-parse HEAD"))
+                                               "org.opencontainers.image.source=https://github.com/vonwig/altjservice"
+                                               "com.atomist.containers.image.dockerfile=Dockerfile"
+                                               version))
+                                (shell (format "docker push gcr.io/personalsdm-216019/altjserver:%s" version))))}
+
+         kube-config-context {:task (if-let [c (-> cli-opts :options :context)]
+                                      c
+                                      (throw (ex-info "run with --context" {})))}
+         context {:depends [kube-config-context]
+                  :task (shell (format "kubectl config use-context %s" kube-config-context))}
+
+         ingress-ip "35.231.1.233"
+
+         pod-version {:depends [context ingress-ip]
+                      :task (shell (format "curl -H \"Host: demo.atomist.com\" http://%s/clj2" ingress-ip))}
+
+         first-pod-name {:task (->> (shell {:out :string} "kubectl get pods -n production -o json")
+                                    (deref)
+                                    :out
+                                    (json/->obj)
+                                    :items
+                                    (filter (fn [item] ( .startsWith (-> item :metadata :name) "altjservice")))
+                                    first
+                                    :metadata
+                                    :name)}
+
+         print-first-pod-name {:depends [first-pod-name] :task (println first-pod-name)} 
+
+         pod-intrusion {:depends [first-pod-name]
+                        :task (shell (format "kubectl exec -it %s -n production -- /bin/bash" first-pod-name))}
+         
+         port-forward {:depends [first-pod-name]
+                       :task (shell (format "kubectl port-forward -n production %s 3000:3000" first-pod-name))}
+         }}
+
