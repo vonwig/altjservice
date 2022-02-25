@@ -12,7 +12,7 @@ COPY src /build/src
 
 RUN lein metajar
 
-FROM openjdk:11-jre-slim
+FROM openjdk:11-jre-slim@sha256:d6eff0a017d72b59c0c865488ac39fa1dedd5ad6526a35f27b7bf7a3e3ae9f67
 
 MAINTAINER Jim Clark <jim@atomist.com>
 
