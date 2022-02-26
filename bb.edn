@@ -39,9 +39,10 @@
                          (throw (ex-info "dirty working copy. stop" {})))}
 
          push {:depends [version]
-               :task (shell (format "git push origin main %s" version))}
+               :task (do (shell "git push origin main")
+                         (shell (format "git push origin %s" version)))}
 
-         ;; requires the jib tool to be installed
+;; requires the jib tool to be installed
          build-image {:depends [commit clean? tag version push]
                       :task (do
                               (when (or
@@ -49,7 +50,7 @@
                                      (seq (fs/modified-since "target/app.jar" (fs/glob "." "deps.edn")))
                                      (seq (fs/modified-since "target/app.jar" (fs/glob "." "jib.edn"))))
                                 (println "version is " version)
-                                (shell (format "docker build --label %s --label %s --label %s -t gcr.io/personalsdm-216019/altjserver:%s ." 
+                                (shell (format "docker build --label %s --label %s --label %s -t gcr.io/personalsdm-216019/altjserver:%s ."
                                                (format "org.opencontainers.image.revision=%s" (-> (shell {:out :string} "git rev-parse HEAD")
                                                                                                   (deref)
                                                                                                   :out))
@@ -74,17 +75,16 @@
                                     :out
                                     (json/->obj)
                                     :items
-                                    (filter (fn [item] ( .startsWith (-> item :metadata :name) "altjservice")))
+                                    (filter (fn [item] (.startsWith (-> item :metadata :name) "altjservice")))
                                     first
                                     :metadata
                                     :name)}
 
-         print-first-pod-name {:depends [first-pod-name] :task (println first-pod-name)} 
+         print-first-pod-name {:depends [first-pod-name] :task (println first-pod-name)}
 
          pod-intrusion {:depends [first-pod-name]
                         :task (shell (format "kubectl exec -it %s -n production -- /bin/bash" first-pod-name))}
-         
+
          port-forward {:depends [first-pod-name]
-                       :task (shell (format "kubectl port-forward -n production %s 3000:3000" first-pod-name))}
-         }}
+                       :task (shell (format "kubectl port-forward -n production %s 3000:3000" first-pod-name))}}}
 
