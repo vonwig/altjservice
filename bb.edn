@@ -10,7 +10,8 @@
                     [babashka.fs :as fs]
                     [clojure.tools.cli :as cli]
                     [clojure.pprint :refer [pprint]]
-                    [tasks]]
+                    [tasks]
+                    [editors.leiningen]]
          :init (do (def cli-opts (cli/parse-opts *command-line-args* [["-m" "--message MESSSAGE" ""]
                                                                       [nil "--skip-clean-check" "run anyway"]
                                                                       [nil "--context context" "kube context"]])))
@@ -84,6 +85,8 @@
 
          pod-intrusion {:depends [first-pod-name]
                         :task (shell (format "kubectl exec -it %s -n production -- /bin/bash" first-pod-name))}
+
+         insert-vulnerability {:task (editors.leiningen/insert-leiningen-dependency {:options {:file "project.clj"}})}
 
          port-forward {:depends [first-pod-name]
                        :task (shell (format "kubectl port-forward -n production %s 3000:3000" first-pod-name))}}}
