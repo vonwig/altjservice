@@ -8,7 +8,7 @@ commonLabels:
   app.kubernetes.io/name: altjservice
 images:
 - name: gcr.io/personalsdm-216019/altjserver
-  newTag: v21
+  newTag: v31
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 decryption:
