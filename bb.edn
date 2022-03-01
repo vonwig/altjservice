@@ -64,6 +64,9 @@
                                                version))
                                 (shell (format "docker push gcr.io/personalsdm-216019/altjserver:%s" version))))}
 
+         kick {:depends [commit pull clean? tag version push]
+               :task (println "pushed " version)}
+
          kube-config-context {:task (if-let [c (-> cli-opts :options :context)]
                                       c
                                       (throw (ex-info "run with --context" {})))}
