@@ -1,6 +1,7 @@
 ## Building
 
 This build usses a GCP Cloud Build [Trigger](https://console.cloud.google.com/cloud-build/triggers/edit/27656c29-05b6-4de4-a69d-3a200f652a30?authuser=1&project=personalsdm-216019).
+
 Push a new `Tag` to trigger a build.  The `Tag` will also be used as the label of the new Image.  The  `cloudbuild.yaml` file at the root of the repo controls the build and pushes to `gcr.io/personalsdm-216019/altjserver`.
 
 Atomist is watching this project for all new image pushes.
