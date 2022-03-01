@@ -35,6 +35,8 @@
          tag {:depends [next-version]
               :task (shell (format "git tag %s" next-version))}
 
+         pull {:task (shell (format "git pull origin main"))}
+
          commit {:depends [increment-version]
                  :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" increment-version)))}
 
@@ -46,7 +48,7 @@
                          (shell (format "git push origin %s" version)))}
 
 ;; requires the jib tool to be installed
-         build-image {:depends [commit clean? tag version push]
+         build-image {:depends [commit pull clean? tag version push]
                       :task (do
                               (when (or
                                      (seq (fs/modified-since "target/app.jar" (fs/glob "src" "**.clj")))
