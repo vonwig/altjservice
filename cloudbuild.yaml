@@ -9,4 +9,4 @@ steps:
   - '-f' 
   - 'Dockerfile' 
   - '.'
-images: ['gcr.io/$PROJECT_ID/$REPO_NAME/$TAG_NAME']
+images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$TAG_NAME']
