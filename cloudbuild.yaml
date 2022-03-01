@@ -3,10 +3,10 @@ steps:
   args: 
   - 'build' 
   - '-t' 
-  - 'gcr.io/$PROJECT_ID/$REPO_NAME:$TAG_NAME' 
+  - 'gcr.io/$PROJECT_ID/altjserver:$TAG_NAME' 
   - '--build-arg' 
   - 'COMMIT_SHA=$COMMIT_SHA' 
   - '-f' 
   - 'Dockerfile' 
   - '.'
-images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$TAG_NAME']
+images: ['gcr.io/$PROJECT_ID/altjserver:$TAG_NAME']
