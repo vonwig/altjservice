@@ -2,7 +2,6 @@ namespace: production
 resources:
 - deployment.yaml
 - service.yaml
-- namespace.yaml
 - ingress.yaml
 commonLabels:
   app.kubernetes.io/name: altjservice
