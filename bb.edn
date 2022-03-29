@@ -1,7 +1,7 @@
 {:min-bb-version "0.3.7"
  :paths ["scripts"]
- :deps {slimslenderslacks/bb-util {#_ #_ :local/root "/Users/slim/slimslenderslacks/bb-util"
-                                   :git/url "https://github.com/slimslenderslacks/bb-util"
+ :deps {slimslenderslacks/bb-util {:local/root "/Users/slim/slimslenderslacks/bb-util"
+                                   #_#_#_#_ :git/url "https://github.com/slimslenderslacks/bb-util"
                                    :sha "5e998cbd166dbd5bb294026ab321c156852a5236" }
         lread/status-line {:git/url "https://github.com/lread/status-line.git"
                            :sha "35ed39645038e81b42cb15ed6753b8462e60a06d"}}
@@ -29,6 +29,9 @@
 
          next-version {:task (tasks/next-tag)}
 
+         set-version {:depends [next-version]
+                      :task (tasks/set-version (fs/file "src/atomist/main.clj") next-version)}
+
          print-next-version {:depends [next-version]
                              :task (println next-version)}
 
@@ -37,8 +40,8 @@
 
          pull {:task (shell (format "git pull origin main"))}
 
-         commit {:depends [increment-version]
-                 :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" increment-version)))}
+         commit {:depends [set-version]
+                 :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" set-version)))}
 
          clean? {:task (if (and (not (-> cli-opts :options :skip-clean-check)) (not (tasks/clean?)))
                          (throw (ex-info "dirty working copy. stop" {})))}
