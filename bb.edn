@@ -40,8 +40,8 @@
 
          pull {:task (shell (format "git pull origin main"))}
 
-         commit {:depends [set-version]
-                 :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" set-version)))}
+         commit {:depends [increment-version]
+                 :task (tasks/recommit-any-updates (or (-> cli-opts :options :message) (format "next version -> %s" increment-version)))}
 
          clean? {:task (if (and (not (-> cli-opts :options :skip-clean-check)) (not (tasks/clean?)))
                          (throw (ex-info "dirty working copy. stop" {})))}
@@ -49,6 +49,9 @@
          push {:depends [version]
                :task (do (shell "git push origin main")
                          (shell (format "git push origin %s" version)))}
+
+         kick {:depends [commit pull clean? tag version push]
+               :task (println "pushed " version)}
 
 ;; requires the jib tool to be installed
          build-image {:depends [commit pull clean? tag version push]
@@ -66,9 +69,6 @@
                                                "com.atomist.containers.image.dockerfile=Dockerfile"
                                                version))
                                 (shell (format "docker push gcr.io/personalsdm-216019/altjserver:%s" version))))}
-
-         kick {:depends [commit pull clean? tag version push]
-               :task (println "pushed " version)}
 
          kube-config-context {:task (if-let [c (-> cli-opts :options :context)]
                                       c
