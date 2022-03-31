@@ -1,4 +1,4 @@
-FROM clojure:lein@sha256:9c193148b801e0bdc8aca9940b363d35a9d0927c3c1b3aa53aa96e477d44b134 AS builder
+FROM clojure:lein@sha256:6fc5e31696be15460f2617232184bedaba51fc65ea30b063793d740a4704641f AS builder
 
 RUN mkdir /build
 
