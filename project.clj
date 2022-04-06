@@ -3,7 +3,8 @@
   :description "docker test"
   :url "https://github.com/atomisthq/bot-service"
 
-  :dependencies [[ring/ring-core "1.8.2"]]
+  :dependencies [[ring/ring-core "1.8.2"]
+                 [ring/ring-jetty-adapter "1.8.2"]]
 
   :exclusions [commons-logging log4j org.slf4j/slf4j-log4j12]
 
