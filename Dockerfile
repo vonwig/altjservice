@@ -1,4 +1,4 @@
-FROM clojure:lein@sha256:9c193148b801e0bdc8aca9940b363d35a9d0927c3c1b3aa53aa96e477d44b134 AS builder
+FROM clojure:lein@sha256:b62b784071963deed29aa5b34fc79b0778c398943975538986821e53f5aeaa27 AS builder
 
 RUN mkdir /build
 
@@ -9,7 +9,7 @@ COPY src /build/src
 
 RUN lein metajar
 
-FROM openjdk:11-jre-slim@sha256:d6eff0a017d72b59c0c865488ac39fa1dedd5ad6526a35f27b7bf7a3e3ae9f67
+FROM openjdk:11-jre-slim@sha256:93af7df2308c5141a751c4830e6b6c5717db102b3b31f012ea29d842dc4f2b02
 
 MAINTAINER Jim Clark <jim@atomist.com>
 
